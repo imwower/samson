@@ -606,12 +606,12 @@ describe Project do
       project.as_json.fetch("repository_path").must_equal "bar/foo"
     end
 
-    it "includes environment variable groups" do
-      project.as_json.keys.must_include "environment_variable_groups"
+    it "includes environment variable groups when requested" do
+      project.as_json(include: :environment_variable_groups).keys.must_include "environment_variable_groups"
     end
 
-    it "includes scoped environment variables" do
-      project.as_json.keys.must_include "environment_variables_with_scope"
+    it "includes scoped environment variables when requested" do
+      project.as_json(include: :environment_variables_with_scope).keys.must_include "environment_variables_with_scope"
     end
   end
 
