@@ -207,8 +207,6 @@ class Project < ActiveRecord::Base
         except: [:token, :deleted_at],
         methods: [
           :repository_path,
-          :environment_variable_groups,
-          :environment_variables_with_scope,
         ]
       }.merge(options || {})
     )
