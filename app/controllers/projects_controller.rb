@@ -54,18 +54,13 @@ class ProjectsController < ApplicationController
   end
 
   def show
-    includes = params[:include].present? && params[:include].to_s.split(',') || []
-
-    envgroups = :environment_variable_groups
-    with_scope = :environment_variables_with_scope
-
-    includes.push(envgroups) if includes.include?(envgroups.to_s)
-    includes.push(with_scope) if includes.include?(with_scope.to_s)
-
     respond_to do |format|
       format.html { @stages = @project.stages }
       format.json do
-        render json: @project.as_json(include: includes)
+        render_as_json :project, @project, allowed_includes: [
+          :environment_variable_groups,
+          :environment_variables_with_scope,
+        ]
       end
     end
   end

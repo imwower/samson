@@ -42,7 +42,4 @@ module GroupScope
     ]
   end
 
-  def as_json(options = {})
-    super({methods: [:scope]}.merge(options))
-  end
 end
