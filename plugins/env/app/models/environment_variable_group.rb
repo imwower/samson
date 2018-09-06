@@ -22,6 +22,6 @@ class EnvironmentVariableGroup < ActiveRecord::Base
   end
 
   def as_json(options = {})
-    super({methods: [:variable_names]}.merge(options || {}))
+    super({methods: [:variable_names]}.merge(options))
   end
 end
