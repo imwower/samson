@@ -41,5 +41,4 @@ module GroupScope
       end
     ]
   end
-
 end
