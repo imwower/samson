@@ -2,8 +2,7 @@
 # Responsible for all git knowledge of a repo
 # Caches a local mirror (not a full checkout) and creates a workspace when deploying
 class GitRepository
-  include ::NewRelic::Agent::MethodTracer
-  include ::Samson::APM
+  include ::Samson::PerformanceTracer
 
   attr_accessor :executor # others set this to listen in on commands being executed
 
@@ -66,7 +65,6 @@ class GitRepository
   def clean!
     FileUtils.rm_rf(repo_cache_dir)
   end
-  add_method_tracer :clean!
 
   def valid_url?
     return false if repository_url.blank?
@@ -128,20 +126,14 @@ class GitRepository
   def clone!
     executor.execute "git -c core.askpass=true clone --mirror #{repository_url} #{repo_cache_dir}"
   end
-  add_method_tracer :clone!
 
   def create_workspace(temp_dir)
     executor.execute "git clone #{repo_cache_dir} #{temp_dir}"
   end
-  add_method_tracer :create_workspace
 
   def update!
     executor.execute("cd #{repo_cache_dir}", 'git fetch -p')
   end
-  add_method_tracer :update!
-
-  # Datadog APM method tracer
-  trace_methods :clean!, :clone!, :create_workspace, :update!
 
   def sha_exist?(sha)
     !!capture_stdout("git", "cat-file", "-t", sha)
@@ -182,4 +174,6 @@ class GitRepository
     )
     output.strip if success
   end
+
+  add_method_tracers :clean!, :clone!, :create_workspace, :update!
 end

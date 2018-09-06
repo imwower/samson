@@ -2,8 +2,7 @@
 require 'shellwords'
 
 class JobExecution
-  include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-  include ::Samson::APM
+  include ::Samson::PerformanceTracer
 
   cattr_accessor(:cancel_timeout, instance_writer: false) { 15.seconds }
 
@@ -141,12 +140,9 @@ class JobExecution
   ensure
     finish unless @cancelled
   end
-  add_transaction_tracer :run,
+  add_asynchronous_tracer :run,
     category: :task,
     params: '{ job_id: id, project: job.project.try(:name), reference: reference }'
-
-  # Datadog APM method tracer
-  trace_methods :run
 
   def finish
     return if @finished

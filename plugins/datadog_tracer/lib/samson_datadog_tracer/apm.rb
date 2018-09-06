@@ -2,15 +2,23 @@
 
 module SamsonDatadogTracer
   module APM
-    def self.included(clazz)
-      clazz.extend ClassMethods
+    class << self
+      def included(clazz)
+        clazz.extend ClassMethods
+      end
+
+      def trace_method_execution_scope(scope_name)
+        if SamsonDatadogTracer.enabled? && ['staging', 'production'].include?(Rails.env)
+          Datadog.tracer.trace("Custom/Hooks/#{scope_name}") do
+            yield
+          end
+        else
+          yield
+        end
+      end
     end
 
     module ClassMethods
-      def trace_methods(methods)
-        Array(methods).each { |m| trace_method(m) }
-      end
-
       def trace_method(method)
         return unless SamsonDatadogTracer.enabled?
 
@@ -40,6 +48,20 @@ module SamsonDatadogTracer
     end
 
     module Helpers
+      class << self
+        def sanitize_name(name)
+          name.to_s.tr_s('^a-zA-Z0-9', '_')
+        end
+
+        def tracer_method_name(method_name)
+          "#{sanitize_name(method_name)}_with_apm_tracer"
+        end
+
+        def untracer_method_name(method_name)
+          "#{sanitize_name(method_name)}_with_apm_untracer"
+        end
+      end
+
       private
 
       def _wrap_method(method, klass)
@@ -59,21 +81,22 @@ module SamsonDatadogTracer
       end
 
       def _define_traced_method(method, trace_name)
-        define_method(method) do |*args, &block|
+        define_method(Helpers.tracer_method_name(method)) do |*args, &block|
           Datadog.tracer.trace(trace_name) do
-            super(*args, &block)
+            send(Helpers.untracer_method_name(method), *args, &block)
           end
         end
       end
 
       def _set_visibility(method, visibility)
+        method_name = Helpers.tracer_method_name(method)
         case visibility
         when :protected
-          protected(method)
+          protected(method_name)
         when :private
-          private(method)
+          private(method_name)
         else
-          public(method)
+          public(method_name)
         end
       end
     end
