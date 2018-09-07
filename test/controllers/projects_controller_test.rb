@@ -136,14 +136,14 @@ describe ProjectsController do
         end
 
         it "renders with envionment_variable_groups if present" do
-          get :show, params: {id: project.to_param, include: "environment_variable_groups", format: :json}
+          get :show, params: {id: project.to_param, includes: "environment_variable_groups", format: :json}
           assert_response :success
           project = JSON.parse(response.body)
           project.keys.must_include "environment_variable_groups"
         end
 
         it "renders with environment_variables_with_scope if present" do
-          get :show, params: {id: project.to_param, include: "environment_variables_with_scope", format: :json}
+          get :show, params: {id: project.to_param, includes: "environment_variables_with_scope", format: :json}
           assert_response :success
           project = JSON.parse(response.body)
           project.keys.must_include "environment_variables_with_scope"
